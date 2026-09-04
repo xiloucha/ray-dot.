@@ -5,30 +5,86 @@ import {
   ChangeDetectorRef
 } from '@angular/core';
 
-import { FormsModule } from '@angular/forms';
+import {
+  FormsModule
+} from '@angular/forms';
 
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule],
+  imports: [
+    FormsModule
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App implements OnInit, OnDestroy {
+export class App
+  implements OnInit, OnDestroy {
+
+
+  /* =========================
+     DISPLAY TYPE
+  ========================= */
+
+  displayType:
+    | 'message'
+    | 'clock'
+    | 'timer'
+    | 'countdown'
+    = 'message';
+
+
+  /* =========================
+     MESSAGE
+  ========================= */
 
   message = '';
 
-  mode = 'scroll';
+
+  /* =========================
+     DISPLAY MODE
+  ========================= */
+
+  mode:
+    | 'scroll'
+    | 'still'
+    | 'blink'
+    = 'scroll';
+
+
+  /* =========================
+     COLOR
+  ========================= */
 
   color = 'pink';
 
+
+  /* =========================
+     STYLE
+  ========================= */
+
   displayStyle = 'neon';
+
+
+  /* =========================
+     DISPLAY STATE
+  ========================= */
 
   isDisplaying = false;
 
   scrollReady = false;
 
+
+  /* =========================
+     LED
+  ========================= */
+
   ledSize = 8;
+
+
+  /* =========================
+     SCROLL
+  ========================= */
 
   scrollSpeed = 80;
 
@@ -41,6 +97,46 @@ export class App implements OnInit, OnDestroy {
   scrollDistance = 0;
 
 
+  /* =========================
+     CLOCK
+  ========================= */
+
+  clockText = '00:00:00';
+
+
+  /* =========================
+     TIMER
+  ========================= */
+
+  timerSeconds = 0;
+
+  timerRunning = false;
+
+
+  /* =========================
+     COUNTDOWN
+  ========================= */
+
+  countdownInputMinutes = 5;
+
+  countdownSeconds = 300;
+
+  countdownRunning = false;
+
+
+  /* =========================
+     INTERVAL
+  ========================= */
+
+  private timeInterval:
+    ReturnType<typeof setInterval>
+    | null = null;
+
+
+  /* =========================
+     FONT
+  ========================= */
+
   private fontData =
     new Map<number, string>();
 
@@ -50,11 +146,13 @@ export class App implements OnInit, OnDestroy {
   private fontLoaded = false;
 
   private fontLoading:
-    Promise<void> | null = null;
+    Promise<void>
+    | null = null;
 
 
   constructor(
-    private cdr: ChangeDetectorRef
+    private cdr:
+      ChangeDetectorRef
   ) {}
 
 
@@ -69,6 +167,8 @@ export class App implements OnInit, OnDestroy {
       this.handlePopState
     );
 
+    this.updateClock();
+
   }
 
 
@@ -79,6 +179,8 @@ export class App implements OnInit, OnDestroy {
       this.handlePopState
     );
 
+    this.stopTimeLoop();
+
   }
 
 
@@ -88,7 +190,11 @@ export class App implements OnInit, OnDestroy {
 
   private handlePopState = (): void => {
 
-    if (this.isDisplaying) {
+    if (
+      this.isDisplaying
+    ) {
+
+      this.stopTimeLoop();
 
       this.isDisplaying = false;
 
@@ -102,30 +208,95 @@ export class App implements OnInit, OnDestroy {
 
 
   /* =========================
-     DISPLAY
+     DISPLAY TYPE
   ========================= */
 
-  async display(): Promise<void> {
+  selectDisplayType(
+    type:
+      | 'message'
+      | 'clock'
+      | 'timer'
+      | 'countdown'
+  ): void {
+
+    this.displayType =
+      type;
+
+
+    /*
+      MESSAGE以外は
+      スクロールを使わない
+    */
 
     if (
-      this.message.trim() === ''
+      type !== 'message'
     ) {
 
-      this.message =
-        'HELLO WORLD';
+      this.mode =
+        'still';
 
     }
 
 
     /*
-      ① フォント読み込み
+      COUNTDOWN選択時
+    */
+
+    if (
+      type === 'countdown'
+    ) {
+
+      this.countdownRunning =
+        false;
+
+      this.countdownSeconds =
+        this.countdownInputMinutes
+        * 60;
+
+    }
+
+  }
+
+
+  /* =========================
+     DISPLAY
+  ========================= */
+
+  async display(): Promise<void> {
+
+
+    /*
+      MESSAGE
+    */
+
+    if (
+      this.displayType ===
+      'message'
+    ) {
+
+      if (
+        this.message.trim() === ''
+      ) {
+
+        this.message =
+          'HELLO WORLD';
+
+      }
+
+    }
+
+
+    /*
+      FONT
     */
 
     try {
 
       await this.loadFont();
 
-    } catch (error) {
+    } catch (
+      error
+    ) {
 
       console.error(
         'RAY DOT. font loading failed:',
@@ -138,40 +309,41 @@ export class App implements OnInit, OnDestroy {
 
 
     /*
-      ② 表示文字を作る
+      DISPLAY TEXT
     */
 
-    this.displayChars =
-      Array.from(this.message);
+    this.updateDisplayChars();
 
 
     /*
-      ③ スクロール開始前の状態
+      SCROLL RESET
     */
 
-    this.scrollReady = false;
+    this.scrollReady =
+      false;
 
-    this.scrollDistance = 0;
+    this.scrollDistance =
+      0;
 
 
     /*
-      最初の描画用コピー。
-
-      ここでAngularが実際に
-      文字を画面へ描画する。
+      FIRST COPY
     */
 
     this.scrollCopies =
       [
-        [...this.displayChars]
+        [
+          ...this.displayChars
+        ]
       ];
 
 
     /*
-      ④ DISPLAY画面へ切り替え
+      DISPLAY ON
     */
 
-    this.isDisplaying = true;
+    this.isDisplaying =
+      true;
 
 
     history.pushState(
@@ -182,28 +354,486 @@ export class App implements OnInit, OnDestroy {
     );
 
 
-    /*
-      Angularに
-      今すぐ画面を描画させる
-    */
-
     this.cdr.detectChanges();
 
 
     /*
-      ⑤ 描画後に
-      実際の文字幅を測定
+      CLOCK / TIMER / COUNTDOWN
     */
 
-    requestAnimationFrame(() => {
+    if (
+      this.displayType !==
+      'message'
+    ) {
 
-      requestAnimationFrame(() => {
+      this.startTimeLoop();
 
-        this.prepareScroll();
+      this.timeInterval = setInterval(() => {
 
-      });
+        console.log(
+          'TIME LOOP',
+          this.displayType,
+          this.timerSeconds,
+          this.countdownSeconds
+        );
+      
+        // 以下そのまま
 
-    });
+    }
+
+
+    /*
+      SCROLL
+    */
+
+    if (
+      this.displayType ===
+      'message'
+      &&
+      this.mode ===
+      'scroll'
+    ) {
+
+      requestAnimationFrame(
+        () => {
+
+          requestAnimationFrame(
+            () => {
+
+              this.prepareScroll();
+
+            }
+          );
+
+        }
+      );
+
+    }
+
+  }
+
+
+  /* =========================
+     UPDATE DISPLAY
+  ========================= */
+
+  private updateDisplayChars():
+    void {
+
+
+    /*
+      MESSAGE
+    */
+
+    if (
+      this.displayType ===
+      'message'
+    ) {
+
+      this.displayChars =
+        Array.from(
+          this.message
+        );
+
+      return;
+
+    }
+
+
+    /*
+      CLOCK
+    */
+
+    if (
+      this.displayType ===
+      'clock'
+    ) {
+
+      this.updateClock();
+
+      this.displayChars =
+        Array.from(
+          this.clockText
+        );
+
+      return;
+
+    }
+
+
+    /*
+      TIMER
+    */
+
+    if (
+      this.displayType ===
+      'timer'
+    ) {
+
+      this.displayChars =
+        Array.from(
+          this.formatTime(
+            this.timerSeconds
+          )
+        );
+
+      return;
+
+    }
+
+
+    /*
+      COUNTDOWN
+    */
+
+    if (
+      this.displayType ===
+      'countdown'
+    ) {
+
+      this.displayChars =
+        Array.from(
+          this.formatTime(
+            this.countdownSeconds
+          )
+        );
+
+    }
+
+  }
+
+
+  /* =========================
+     CLOCK
+  ========================= */
+
+  private updateClock():
+    void {
+
+    const now =
+      new Date();
+
+
+    const hours =
+      String(
+        now.getHours()
+      )
+      .padStart(
+        2,
+        '0'
+      );
+
+
+    const minutes =
+      String(
+        now.getMinutes()
+      )
+      .padStart(
+        2,
+        '0'
+      );
+
+
+    const seconds =
+      String(
+        now.getSeconds()
+      )
+      .padStart(
+        2,
+        '0'
+      );
+
+
+    this.clockText =
+      `${hours}:${minutes}:${seconds}`;
+
+  }
+
+
+  /* =========================
+     FORMAT TIME
+  ========================= */
+
+  private formatTime(
+    totalSeconds:
+      number
+  ): string {
+
+    const safeSeconds =
+      Math.max(
+        0,
+        Math.floor(
+          totalSeconds
+        )
+      );
+
+
+    const hours =
+      Math.floor(
+        safeSeconds
+        / 3600
+      );
+
+
+    const minutes =
+      Math.floor(
+        (
+          safeSeconds
+          % 3600
+        )
+        / 60
+      );
+
+
+    const seconds =
+      safeSeconds
+      % 60;
+
+
+    return (
+      String(
+        hours
+      )
+      .padStart(
+        2,
+        '0'
+      )
+      +
+      ':'
+      +
+      String(
+        minutes
+      )
+      .padStart(
+        2,
+        '0'
+      )
+      +
+      ':'
+      +
+      String(
+        seconds
+      )
+      .padStart(
+        2,
+        '0'
+      )
+    );
+
+  }
+
+
+  /* =========================
+     TIME LOOP
+  ========================= */
+
+  private startTimeLoop():
+    void {
+
+    this.stopTimeLoop();
+
+
+    this.timeInterval =
+      setInterval(
+        () => {
+
+
+          /*
+            CLOCK
+          */
+
+          if (
+            this.displayType ===
+            'clock'
+          ) {
+
+            this.updateClock();
+
+          }
+
+
+          /*
+            TIMER
+          */
+
+          if (
+            this.displayType ===
+            'timer'
+            &&
+            this.timerRunning
+          ) {
+
+            this.timerSeconds++;
+
+          }
+
+
+          /*
+            COUNTDOWN
+          */
+
+          if (
+            this.displayType ===
+            'countdown'
+            &&
+            this.countdownRunning
+          ) {
+
+            if (
+              this.countdownSeconds >
+              0
+            ) {
+
+              this.countdownSeconds--;
+
+            }
+
+
+            if (
+              this.countdownSeconds <=
+              0
+            ) {
+
+              this.countdownSeconds =
+                0;
+
+              this.countdownRunning =
+                false;
+
+            }
+
+          }
+
+
+          this.updateDisplayChars();
+
+          this.cdr.detectChanges();
+
+
+        },
+        1000
+      );
+
+  }
+
+
+  private stopTimeLoop():
+    void {
+
+    if (
+      this.timeInterval
+    ) {
+
+      clearInterval(
+        this.timeInterval
+      );
+
+      this.timeInterval =
+        null;
+
+    }
+
+  }
+
+
+  /* =========================
+     TIMER
+  ========================= */
+
+  startTimer():
+    void {
+
+    this.timerRunning =
+      true;
+
+  }
+
+
+  pauseTimer():
+    void {
+
+    this.timerRunning =
+      false;
+
+  }
+
+
+  resetTimer():
+    void {
+
+    this.timerRunning =
+      false;
+
+    this.timerSeconds =
+      0;
+
+    this.updateDisplayChars();
+
+    this.cdr.detectChanges();
+
+  }
+
+
+  /* =========================
+     COUNTDOWN
+  ========================= */
+
+  startCountdown():
+    void {
+
+    if (
+      this.countdownSeconds <=
+      0
+    ) {
+
+      this.countdownSeconds =
+        this.countdownInputMinutes
+        * 60;
+
+    }
+
+
+    this.countdownRunning =
+      true;
+
+  }
+
+
+  pauseCountdown():
+    void {
+
+    this.countdownRunning =
+      false;
+
+  }
+
+
+  resetCountdown():
+    void {
+
+    this.countdownRunning =
+      false;
+
+    this.countdownSeconds =
+      this.countdownInputMinutes
+      * 60;
+
+    this.updateDisplayChars();
+
+    this.cdr.detectChanges();
+
+  }
+
+
+  onCountdownInputChange():
+    void {
+
+    this.countdownRunning =
+      false;
+
+    this.countdownSeconds =
+      this.countdownInputMinutes
+      * 60;
 
   }
 
@@ -212,10 +842,15 @@ export class App implements OnInit, OnDestroy {
      PREPARE SCROLL
   ========================= */
 
-  private prepareScroll(): void {
+  private prepareScroll():
+    void {
 
     if (
-      this.mode !== 'scroll'
+      this.mode !==
+      'scroll'
+      ||
+      this.displayType !==
+      'message'
     ) {
 
       return;
@@ -223,24 +858,22 @@ export class App implements OnInit, OnDestroy {
     }
 
 
-    /*
-      実際に描画された
-      文字の幅を取得
-    */
-
     const messageElement =
-      document.querySelector(
-        '.scroll-copy'
-      ) as HTMLElement | null;
+  document.querySelector(
+    '.scroll-copy'
+  ) as HTMLElement | null;
 
+    if (
+      !messageElement
+    ) {
 
-    if (!messageElement) {
+      requestAnimationFrame(
+        () => {
 
-      requestAnimationFrame(() => {
+          this.prepareScroll();
 
-        this.prepareScroll();
-
-      });
+        }
+      );
 
       return;
 
@@ -249,43 +882,31 @@ export class App implements OnInit, OnDestroy {
 
     const width =
       messageElement
-        .getBoundingClientRect()
-        .width;
+      .getBoundingClientRect()
+      .width;
 
-
-    /*
-      まだレイアウト計算が
-      終わっていない場合
-    */
 
     if (
-      width <= 0
+      width <=
+      0
     ) {
 
-      requestAnimationFrame(() => {
+      requestAnimationFrame(
+        () => {
 
-        this.prepareScroll();
+          this.prepareScroll();
 
-      });
+        }
+      );
 
       return;
 
     }
 
 
-    /*
-      ⑥ 1メッセージ分の
-      実際の幅を保存
-    */
-
     this.scrollDistance =
       width;
 
-
-    /*
-      ⑦ 画面幅に応じて
-      必要なコピー数を計算
-    */
 
     const viewportWidth =
       window.innerWidth;
@@ -295,64 +916,53 @@ export class App implements OnInit, OnDestroy {
       Math.max(
         6,
         Math.ceil(
-          viewportWidth / width
-        ) + 5
+          viewportWidth
+          / width
+        )
+        + 5
       );
 
-
-    /*
-      コピーを増やす
-    */
 
     this.scrollCopies =
       Array.from(
         {
-          length: copyCount
+          length:
+            copyCount
         },
         () =>
-          [...this.displayChars]
+          [
+            ...this.displayChars
+          ]
       );
 
 
-    /*
-      ⑧ スクロール時間
-
-      実際の文字幅 ÷ 速度
-    */
-
     this.displayDuration =
       Math.max(
-        width /
-        this.scrollSpeed,
+        width
+        / this.scrollSpeed,
         4
       );
 
 
-    /*
-      コピー数・距離・時間を
-      Angularへ反映
-    */
-
     this.cdr.detectChanges();
 
 
-    /*
-      ⑨ DOM更新後、
-      次の描画フレームで
-      スクロール開始
-    */
+    requestAnimationFrame(
+      () => {
 
-    requestAnimationFrame(() => {
+        requestAnimationFrame(
+          () => {
 
-      requestAnimationFrame(() => {
+            this.scrollReady =
+              true;
 
-        this.scrollReady = true;
+            this.cdr.detectChanges();
 
-        this.cdr.detectChanges();
+          }
+        );
 
-      });
-
-    });
+      }
+    );
 
   }
 
@@ -361,7 +971,11 @@ export class App implements OnInit, OnDestroy {
      EDIT
   ========================= */
 
-  stopDisplay(): void {
+  stopDisplay():
+    void {
+
+    this.stopTimeLoop();
+
 
     if (
       this.isDisplaying
@@ -378,10 +992,15 @@ export class App implements OnInit, OnDestroy {
      SIZE CHANGE
   ========================= */
 
-  onSizeChange(): void {
+  onSizeChange():
+    void {
 
     if (
-      this.mode !== 'scroll'
+      this.mode !==
+      'scroll'
+      ||
+      this.displayType !==
+      'message'
     ) {
 
       return;
@@ -389,29 +1008,25 @@ export class App implements OnInit, OnDestroy {
     }
 
 
-    /*
-      サイズ変更時はいったん停止
-    */
-
-    this.scrollReady = false;
+    this.scrollReady =
+      false;
 
     this.cdr.detectChanges();
 
 
-    /*
-      新しいドットサイズで
-      DOMの幅を測り直す
-    */
+    requestAnimationFrame(
+      () => {
 
-    requestAnimationFrame(() => {
+        requestAnimationFrame(
+          () => {
 
-      requestAnimationFrame(() => {
+            this.prepareScroll();
 
-        this.prepareScroll();
+          }
+        );
 
-      });
-
-    });
+      }
+    );
 
   }
 
@@ -420,7 +1035,8 @@ export class App implements OnInit, OnDestroy {
      FONT LOADING
   ========================= */
 
-  private async loadFont(): Promise<void> {
+  private async loadFont():
+    Promise<void> {
 
     if (
       this.fontLoaded
@@ -450,14 +1066,16 @@ export class App implements OnInit, OnDestroy {
 
     } finally {
 
-      this.fontLoading = null;
+      this.fontLoading =
+        null;
 
     }
 
   }
 
 
-  private async fetchFont(): Promise<void> {
+  private async fetchFont():
+    Promise<void> {
 
     const response =
       await fetch(
@@ -487,7 +1105,8 @@ export class App implements OnInit, OnDestroy {
 
 
     for (
-      const line of lines
+      const line
+      of lines
     ) {
 
       if (
@@ -506,7 +1125,8 @@ export class App implements OnInit, OnDestroy {
 
 
       if (
-        separator === -1
+        separator ===
+        -1
       ) {
 
         continue;
@@ -527,14 +1147,17 @@ export class App implements OnInit, OnDestroy {
       const bitmap =
         line.slice(
           separator + 1
-        ).trim();
+        )
+        .trim();
 
 
       if (
         Number.isNaN(
           codePoint
-        ) ||
-        bitmap.length === 0
+        )
+        ||
+        bitmap.length ===
+        0
       ) {
 
         continue;
@@ -561,8 +1184,10 @@ export class App implements OnInit, OnDestroy {
   ========================= */
 
   getPattern(
-    char: string
-  ): string[] {
+    char:
+      string
+  ):
+    string[] {
 
     const codePoint =
       char.codePointAt(
@@ -571,7 +1196,8 @@ export class App implements OnInit, OnDestroy {
 
 
     if (
-      codePoint === undefined
+      codePoint ===
+      undefined
     ) {
 
       return this.blankPattern();
@@ -644,8 +1270,10 @@ export class App implements OnInit, OnDestroy {
 
 
   getRows(
-    char: string
-  ): string[][] {
+    char:
+      string
+  ):
+    string[][] {
 
     return this
       .getPattern(
@@ -653,7 +1281,9 @@ export class App implements OnInit, OnDestroy {
       )
       .map(
         row =>
-          row.split('')
+          row.split(
+            ''
+          )
       );
 
   }
@@ -664,11 +1294,14 @@ export class App implements OnInit, OnDestroy {
   ========================= */
 
   private hexToPattern(
-    hex: string
-  ): string[] {
+    hex:
+      string
+  ):
+    string[] {
 
     const rows:
-      string[] = [];
+      string[] =
+      [];
 
 
     /*
@@ -676,7 +1309,8 @@ export class App implements OnInit, OnDestroy {
     */
 
     if (
-      hex.length === 64
+      hex.length ===
+      64
     ) {
 
       for (
@@ -723,7 +1357,8 @@ export class App implements OnInit, OnDestroy {
     */
 
     if (
-      hex.length === 32
+      hex.length ===
+      32
     ) {
 
       for (
@@ -755,8 +1390,10 @@ export class App implements OnInit, OnDestroy {
 
         rows.push(
 
-          '0000' +
-          row +
+          '0000'
+          +
+          row
+          +
           '0000'
 
         );
@@ -783,7 +1420,8 @@ export class App implements OnInit, OnDestroy {
 
     return Array(
       16
-    ).fill(
+    )
+    .fill(
 
       '0'.repeat(
         16

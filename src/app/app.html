@@ -23,58 +23,216 @@
           PERSONAL DISPLAY DEVICE
         </div>
 
-        <h1>MESSAGE</h1>
 
-        <p class="question">
-          何を表示する？
-        </p>
+        <h1>
+          {{
+            displayType === 'message'
+              ? 'MESSAGE'
+              : displayType === 'clock'
+                ? 'CLOCK'
+                : displayType === 'timer'
+                  ? 'TIMER'
+                  : 'COUNTDOWN'
+          }}
+        </h1>
 
 
-        <input
-          type="text"
-          [(ngModel)]="message"
-          placeholder="TYPE SOMETHING..."
-          maxlength="40"
-        />
-
+        <!-- =====================
+             DISPLAY TYPE
+        ====================== -->
 
         <div class="mode-title">
-          MODE
+          DISPLAY TYPE
         </div>
 
 
-        <div class="modes">
+        <div class="display-types">
 
           <button
             type="button"
-            [class.selected]="mode === 'scroll'"
-            (click)="mode = 'scroll'"
+            [class.selected]="
+              displayType === 'message'
+            "
+            (click)="selectDisplayType('message')"
           >
-            SCROLL
+            MESSAGE
           </button>
 
 
           <button
             type="button"
-            [class.selected]="mode === 'still'"
-            (click)="mode = 'still'"
+            [class.selected]="
+              displayType === 'clock'
+            "
+            (click)="selectDisplayType('clock')"
           >
-            STILL
+            CLOCK
           </button>
 
 
           <button
             type="button"
-            [class.selected]="mode === 'blink'"
-            (click)="mode = 'blink'"
+            [class.selected]="
+              displayType === 'timer'
+            "
+            (click)="selectDisplayType('timer')"
           >
-            BLINK
+            TIMER
+          </button>
+
+
+          <button
+            type="button"
+            [class.selected]="
+              displayType === 'countdown'
+            "
+            (click)="selectDisplayType('countdown')"
+          >
+            COUNTDOWN
           </button>
 
         </div>
 
 
-        <!-- COLOR -->
+        <!-- =====================
+             MESSAGE
+        ====================== -->
+
+        @if (
+          displayType ===
+          'message'
+        ) {
+
+          <p class="question">
+            何を表示する？
+          </p>
+
+
+          <input
+            type="text"
+            [(ngModel)]="message"
+            placeholder="TYPE SOMETHING..."
+            maxlength="40"
+          />
+
+
+          <div class="mode-title">
+            MODE
+          </div>
+
+
+          <div class="modes">
+
+            <button
+              type="button"
+              [class.selected]="
+                mode === 'scroll'
+              "
+              (click)="mode = 'scroll'"
+            >
+              SCROLL
+            </button>
+
+
+            <button
+              type="button"
+              [class.selected]="
+                mode === 'still'
+              "
+              (click)="mode = 'still'"
+            >
+              STILL
+            </button>
+
+
+            <button
+              type="button"
+              [class.selected]="
+                mode === 'blink'
+              "
+              (click)="mode = 'blink'"
+            >
+              BLINK
+            </button>
+
+          </div>
+
+        }
+
+
+        <!-- =====================
+             CLOCK
+        ====================== -->
+
+        @if (
+          displayType ===
+          'clock'
+        ) {
+
+          <p class="question">
+            現在時刻を表示する
+          </p>
+
+        }
+
+
+        <!-- =====================
+             TIMER
+        ====================== -->
+
+        @if (
+          displayType ===
+          'timer'
+        ) {
+
+          <p class="question">
+            00:00:00 から計測する
+          </p>
+
+        }
+
+
+        <!-- =====================
+             COUNTDOWN
+        ====================== -->
+
+        @if (
+          displayType ===
+          'countdown'
+        ) {
+
+          <div class="option-title">
+            START TIME
+          </div>
+
+
+          <div class="countdown-input">
+
+            <input
+              type="number"
+              min="1"
+              max="999"
+              [(ngModel)]="
+                countdownInputMinutes
+              "
+              (input)="
+                onCountdownInputChange()
+              "
+            />
+
+
+            <span>
+              MINUTES
+            </span>
+
+          </div>
+
+        }
+
+
+        <!-- =====================
+             COLOR
+        ====================== -->
 
         <div class="option-title">
           COLOR
@@ -86,7 +244,9 @@
           <button
             type="button"
             class="color-button pink"
-            [class.selected]="color === 'pink'"
+            [class.selected]="
+              color === 'pink'
+            "
             (click)="color = 'pink'"
           >
             PINK
@@ -96,7 +256,9 @@
           <button
             type="button"
             class="color-button yellow"
-            [class.selected]="color === 'yellow'"
+            [class.selected]="
+              color === 'yellow'
+            "
             (click)="color = 'yellow'"
           >
             YELLOW
@@ -106,7 +268,9 @@
           <button
             type="button"
             class="color-button purple"
-            [class.selected]="color === 'purple'"
+            [class.selected]="
+              color === 'purple'
+            "
             (click)="color = 'purple'"
           >
             PURPLE
@@ -116,7 +280,9 @@
           <button
             type="button"
             class="color-button blue"
-            [class.selected]="color === 'blue'"
+            [class.selected]="
+              color === 'blue'
+            "
             (click)="color = 'blue'"
           >
             BLUE
@@ -126,7 +292,9 @@
           <button
             type="button"
             class="color-button green"
-            [class.selected]="color === 'green'"
+            [class.selected]="
+              color === 'green'
+            "
             (click)="color = 'green'"
           >
             GREEN
@@ -136,7 +304,9 @@
           <button
             type="button"
             class="color-button orange"
-            [class.selected]="color === 'orange'"
+            [class.selected]="
+              color === 'orange'
+            "
             (click)="color = 'orange'"
           >
             ORANGE
@@ -145,7 +315,9 @@
         </div>
 
 
-        <!-- STYLE -->
+        <!-- =====================
+             STYLE
+        ====================== -->
 
         <div class="option-title">
           STYLE
@@ -156,7 +328,9 @@
 
           <button
             type="button"
-            [class.selected]="displayStyle === 'neon'"
+            [class.selected]="
+              displayStyle === 'neon'
+            "
             (click)="displayStyle = 'neon'"
           >
             NEON
@@ -165,7 +339,9 @@
 
           <button
             type="button"
-            [class.selected]="displayStyle === 'led'"
+            [class.selected]="
+              displayStyle === 'led'
+            "
             (click)="displayStyle = 'led'"
           >
             LED BOARD
@@ -174,13 +350,18 @@
         </div>
 
 
+        <!-- =====================
+             DISPLAY BUTTON
+        ====================== -->
+
         <button
           type="button"
           class="display-button"
           (click)="display()"
         >
 
-          DISPLAY <span>→</span>
+          DISPLAY
+          <span>→</span>
 
         </button>
 
@@ -190,38 +371,93 @@
     } @else {
 
 
+      <!-- =====================
+           DISPLAY
+      ====================== -->
+
       <section
         class="display"
 
-        [class.scroll]="mode === 'scroll'"
-        [class.still]="mode === 'still'"
-        [class.blink]="mode === 'blink'"
+        [class.scroll]="
+          displayType === 'message'
+          &&
+          mode === 'scroll'
+        "
 
-        [class.theme-pink]="color === 'pink'"
-        [class.theme-yellow]="color === 'yellow'"
-        [class.theme-purple]="color === 'purple'"
-        [class.theme-blue]="color === 'blue'"
-        [class.theme-green]="color === 'green'"
-        [class.theme-orange]="color === 'orange'"
+        [class.still]="
+  displayType === 'message'
+  &&
+  mode === 'still'
+"
 
-        [class.style-neon]="displayStyle === 'neon'"
-        [class.style-led]="displayStyle === 'led'"
+[class.blink]="
+  displayType === 'message'
+  &&
+  mode === 'blink'
+"
 
-        [style.--led-size.px]="ledSize"
-        [style.--scroll-distance.px]="scrollDistance"
+        [class.theme-pink]="
+          color === 'pink'
+        "
+
+        [class.theme-yellow]="
+          color === 'yellow'
+        "
+
+        [class.theme-purple]="
+          color === 'purple'
+        "
+
+        [class.theme-blue]="
+          color === 'blue'
+        "
+
+        [class.theme-green]="
+          color === 'green'
+        "
+
+        [class.theme-orange]="
+          color === 'orange'
+        "
+
+        [class.style-neon]="
+          displayStyle === 'neon'
+        "
+
+        [class.style-led]="
+          displayStyle === 'led'
+        "
+
+        [style.--led-size.px]="
+          ledSize
+        "
+
+        [style.--scroll-distance.px]="
+          scrollDistance
+        "
       >
 
 
         <div class="display-panel">
 
 
-          @if (mode === 'scroll') {
+          <!-- =====================
+               SCROLL MESSAGE
+          ====================== -->
+
+          @if (
+            displayType === 'message'
+            &&
+            mode === 'scroll'
+          ) {
 
             <div class="scroll-window">
 
               <div
                 class="scroll-track"
-                [class.ready]="scrollReady"
+                [class.ready]="
+                  scrollReady
+                "
                 [style.animation-duration]="
                   displayDuration + 's'
                 "
@@ -233,7 +469,10 @@
                 ) {
 
                   <div
-                    class="led-message scroll-copy"
+                    class="
+                      led-message
+                      scroll-copy
+                    "
                   >
 
                     @for (
@@ -241,14 +480,22 @@
                       track $index
                     ) {
 
-                      <div class="led-character">
+                      <div
+                        class="
+                          led-character
+                        "
+                      >
 
                         @for (
                           row of getRows(char);
                           track $index
                         ) {
 
-                          <div class="led-row">
+                          <div
+                            class="
+                              led-row
+                            "
+                          >
 
                             @for (
                               dot of row;
@@ -257,7 +504,9 @@
 
                               <span
                                 class="led"
-                                [class.on]="dot === '1'"
+                                [class.on]="
+                                  dot === '1'
+                                "
                               ></span>
 
                             }
@@ -282,23 +531,43 @@
           } @else {
 
 
-            <div class="still-window">
+            <!-- =====================
+                 STILL / BLINK
+            ====================== -->
 
-              <div class="still-message">
+            <div
+              class="
+                still-window
+              "
+            >
+
+              <div
+                class="
+                  still-message
+                "
+              >
 
                 @for (
                   char of displayChars;
                   track $index
                 ) {
 
-                  <div class="led-character">
+                  <div
+                    class="
+                      led-character
+                    "
+                  >
 
                     @for (
                       row of getRows(char);
                       track $index
                     ) {
 
-                      <div class="led-row">
+                      <div
+                        class="
+                          led-row
+                        "
+                      >
 
                         @for (
                           dot of row;
@@ -307,7 +576,9 @@
 
                           <span
                             class="led"
-                            [class.on]="dot === '1'"
+                            [class.on]="
+                              dot === '1'
+                            "
                           ></span>
 
                         }
@@ -330,15 +601,131 @@
         </div>
 
 
-        <div class="size-control">
+        <!-- =====================
+             TIMER CONTROLS
+        ====================== -->
 
-          <div class="size-header">
+        @if (
+          displayType ===
+          'timer'
+        ) {
+
+          <div
+            class="
+              time-controls
+            "
+          >
+
+            @if (
+              !timerRunning
+            ) {
+
+              <button
+                type="button"
+                (click)="startTimer()"
+              >
+                START
+              </button>
+
+            } @else {
+
+              <button
+                type="button"
+                (click)="pauseTimer()"
+              >
+                PAUSE
+              </button>
+
+            }
+
+
+            <button
+              type="button"
+              (click)="resetTimer()"
+            >
+              RESET
+            </button>
+
+          </div>
+
+        }
+
+
+        <!-- =====================
+             COUNTDOWN CONTROLS
+        ====================== -->
+
+        @if (
+          displayType ===
+          'countdown'
+        ) {
+
+          <div
+            class="
+              time-controls
+            "
+          >
+
+            @if (
+              !countdownRunning
+            ) {
+
+              <button
+                type="button"
+                (click)="startCountdown()"
+              >
+                START
+              </button>
+
+            } @else {
+
+              <button
+                type="button"
+                (click)="pauseCountdown()"
+              >
+                PAUSE
+              </button>
+
+            }
+
+
+            <button
+              type="button"
+              (click)="resetCountdown()"
+            >
+              RESET
+            </button>
+
+          </div>
+
+        }
+
+
+        <!-- =====================
+             DOT SIZE
+        ====================== -->
+
+        <div
+          class="
+            size-control
+          "
+        >
+
+          <div
+            class="
+              size-header
+            "
+          >
 
             <span>
               DOT SIZE
             </span>
 
-            <span class="size-value">
+            <span
+              class="
+                size-value
+              "
+            >
               {{ ledSize }} PX
             </span>
 
@@ -346,17 +733,27 @@
 
 
           <input
-            class="size-slider"
+            class="
+              size-slider
+            "
             type="range"
             min="4"
             max="20"
             step="1"
-            [(ngModel)]="ledSize"
-            (input)="onSizeChange()"
+            [(ngModel)]="
+              ledSize
+            "
+            (input)="
+              onSizeChange()
+            "
           />
 
 
-          <div class="size-labels">
+          <div
+            class="
+              size-labels
+            "
+          >
 
             <span>
               SMALL
@@ -371,9 +768,15 @@
         </div>
 
 
+        <!-- =====================
+             EDIT
+        ====================== -->
+
         <button
           type="button"
-          class="back-button"
+          class="
+            back-button
+          "
           (click)="stopDisplay()"
         >
 
