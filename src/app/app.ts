@@ -9,7 +9,6 @@ import {
   FormsModule
 } from '@angular/forms';
 
-
 @Component({
   selector: 'app-root',
   imports: [
@@ -21,11 +20,6 @@ import {
 export class App
   implements OnInit, OnDestroy {
 
-
-  /* =========================
-     DISPLAY TYPE
-  ========================= */
-
   displayType:
     | 'message'
     | 'clock'
@@ -33,17 +27,7 @@ export class App
     | 'countdown'
     = 'message';
 
-
-  /* =========================
-     MESSAGE
-  ========================= */
-
   message = '';
-
-
-  /* =========================
-     DISPLAY MODE
-  ========================= */
 
   mode:
     | 'scroll'
@@ -51,40 +35,15 @@ export class App
     | 'blink'
     = 'scroll';
 
-
-  /* =========================
-     COLOR
-  ========================= */
-
   color = 'pink';
 
-
-  /* =========================
-     STYLE
-  ========================= */
-
   displayStyle = 'neon';
-
-
-  /* =========================
-     DISPLAY STATE
-  ========================= */
 
   isDisplaying = false;
 
   scrollReady = false;
 
-
-  /* =========================
-     LED
-  ========================= */
-
   ledSize = 8;
-
-
-  /* =========================
-     SCROLL
-  ========================= */
 
   scrollSpeed = 80;
 
@@ -96,26 +55,11 @@ export class App
 
   scrollDistance = 0;
 
-
-  /* =========================
-     CLOCK
-  ========================= */
-
   clockText = '00:00:00';
-
-
-  /* =========================
-     TIMER
-  ========================= */
 
   timerSeconds = 0;
 
   timerRunning = false;
-
-
-  /* =========================
-     COUNTDOWN
-  ========================= */
 
   countdownInputMinutes = 5;
 
@@ -123,19 +67,9 @@ export class App
 
   countdownRunning = false;
 
-
-  /* =========================
-     INTERVAL
-  ========================= */
-
   private timeInterval:
     ReturnType<typeof setInterval>
     | null = null;
-
-
-  /* =========================
-     FONT
-  ========================= */
 
   private fontData =
     new Map<number, string>();
@@ -149,50 +83,31 @@ export class App
     Promise<void>
     | null = null;
 
-
   constructor(
-    private cdr:
-      ChangeDetectorRef
+    private cdr: ChangeDetectorRef
   ) {}
 
-
-  /* =========================
-     LIFECYCLE
-  ========================= */
-
   ngOnInit(): void {
-
     window.addEventListener(
       'popstate',
       this.handlePopState
     );
 
     this.updateClock();
-
   }
 
-
   ngOnDestroy(): void {
-
     window.removeEventListener(
       'popstate',
       this.handlePopState
     );
 
     this.stopTimeLoop();
-
   }
-
-
-  /* =========================
-     BROWSER BACK
-  ========================= */
 
   private handlePopState = (): void => {
 
-    if (
-      this.isDisplaying
-    ) {
+    if (this.isDisplaying) {
 
       this.stopTimeLoop();
 
@@ -201,15 +116,8 @@ export class App
       this.scrollReady = false;
 
       this.cdr.detectChanges();
-
     }
-
   };
-
-
-  /* =========================
-     DISPLAY TYPE
-  ========================= */
 
   selectDisplayType(
     type:
@@ -219,84 +127,39 @@ export class App
       | 'countdown'
   ): void {
 
-    this.displayType =
-      type;
+    this.displayType = type;
 
-
-    /*
-      MESSAGE以外は
-      スクロールを使わない
-    */
-
-    if (
-      type !== 'message'
-    ) {
-
-      this.mode =
-        'still';
-
+    if (type !== 'message') {
+      this.mode = 'still';
     }
 
+    if (type === 'countdown') {
 
-    /*
-      COUNTDOWN選択時
-    */
-
-    if (
-      type === 'countdown'
-    ) {
-
-      this.countdownRunning =
-        false;
+      this.countdownRunning = false;
 
       this.countdownSeconds =
-        this.countdownInputMinutes
-        * 60;
-
+        this.countdownInputMinutes * 60;
     }
-
   }
-
-
-  /* =========================
-     DISPLAY
-  ========================= */
 
   async display(): Promise<void> {
 
-
-    /*
-      MESSAGE
-    */
-
     if (
-      this.displayType ===
-      'message'
+      this.displayType === 'message'
     ) {
 
       if (
         this.message.trim() === ''
       ) {
-
-        this.message =
-          'HELLO WORLD';
-
+        this.message = 'HELLO WORLD';
       }
-
     }
-
-
-    /*
-      FONT
-    */
 
     try {
 
       await this.loadFont();
 
-    } catch (
-      error
-    ) {
+    } catch (error) {
 
       console.error(
         'RAY DOT. font loading failed:',
@@ -304,47 +167,21 @@ export class App
       );
 
       return;
-
     }
-
-
-    /*
-      DISPLAY TEXT
-    */
 
     this.updateDisplayChars();
 
+    this.scrollReady = false;
 
-    /*
-      SCROLL RESET
-    */
+    this.scrollDistance = 0;
 
-    this.scrollReady =
-      false;
-
-    this.scrollDistance =
-      0;
-
-
-    /*
-      FIRST COPY
-    */
-
-    this.scrollCopies =
+    this.scrollCopies = [
       [
-        [
-          ...this.displayChars
-        ]
-      ];
+        ...this.displayChars
+      ]
+    ];
 
-
-    /*
-      DISPLAY ON
-    */
-
-    this.isDisplaying =
-      true;
-
+    this.isDisplaying = true;
 
     history.pushState(
       {
@@ -353,45 +190,19 @@ export class App
       ''
     );
 
-
     this.cdr.detectChanges();
 
-
-    /*
-      CLOCK / TIMER / COUNTDOWN
-    */
-
     if (
-      this.displayType !==
-      'message'
+      this.displayType !== 'message'
     ) {
 
       this.startTimeLoop();
-
-      this.timeInterval = setInterval(() => {
-
-        console.log(
-          'TIME LOOP',
-          this.displayType,
-          this.timerSeconds,
-          this.countdownSeconds
-        );
-      
-        // 以下そのまま
-
     }
 
-
-    /*
-      SCROLL
-    */
-
     if (
-      this.displayType ===
-      'message'
+      this.displayType === 'message'
       &&
-      this.mode ===
-      'scroll'
+      this.mode === 'scroll'
     ) {
 
       requestAnimationFrame(
@@ -407,67 +218,35 @@ export class App
 
         }
       );
-
     }
-
   }
 
-
-  /* =========================
-     UPDATE DISPLAY
-  ========================= */
-
-  private updateDisplayChars():
-    void {
-
-
-    /*
-      MESSAGE
-    */
+  private updateDisplayChars(): void {
 
     if (
-      this.displayType ===
-      'message'
+      this.displayType === 'message'
     ) {
 
       this.displayChars =
-        Array.from(
-          this.message
-        );
+        Array.from(this.message);
 
       return;
-
     }
 
-
-    /*
-      CLOCK
-    */
-
     if (
-      this.displayType ===
-      'clock'
+      this.displayType === 'clock'
     ) {
 
       this.updateClock();
 
       this.displayChars =
-        Array.from(
-          this.clockText
-        );
+        Array.from(this.clockText);
 
       return;
-
     }
 
-
-    /*
-      TIMER
-    */
-
     if (
-      this.displayType ===
-      'timer'
+      this.displayType === 'timer'
     ) {
 
       this.displayChars =
@@ -478,17 +257,10 @@ export class App
         );
 
       return;
-
     }
 
-
-    /*
-      COUNTDOWN
-    */
-
     if (
-      this.displayType ===
-      'countdown'
+      this.displayType === 'countdown'
     ) {
 
       this.displayChars =
@@ -498,374 +270,211 @@ export class App
           )
         );
 
+      return;
     }
-
   }
 
+  private updateClock(): void {
 
-  /* =========================
-     CLOCK
-  ========================= */
-
-  private updateClock():
-    void {
-
-    const now =
-      new Date();
-
+    const now = new Date();
 
     const hours =
       String(
         now.getHours()
-      )
-      .padStart(
-        2,
-        '0'
-      );
-
+      ).padStart(2, '0');
 
     const minutes =
       String(
         now.getMinutes()
-      )
-      .padStart(
-        2,
-        '0'
-      );
-
+      ).padStart(2, '0');
 
     const seconds =
       String(
         now.getSeconds()
-      )
-      .padStart(
-        2,
-        '0'
-      );
-
+      ).padStart(2, '0');
 
     this.clockText =
       `${hours}:${minutes}:${seconds}`;
-
   }
 
-
-  /* =========================
-     FORMAT TIME
-  ========================= */
-
   private formatTime(
-    totalSeconds:
-      number
+    totalSeconds: number
   ): string {
 
     const safeSeconds =
       Math.max(
         0,
-        Math.floor(
-          totalSeconds
-        )
+        Math.floor(totalSeconds)
       );
-
 
     const hours =
       Math.floor(
-        safeSeconds
-        / 3600
+        safeSeconds / 3600
       );
-
 
     const minutes =
       Math.floor(
         (
-          safeSeconds
-          % 3600
-        )
-        / 60
+          safeSeconds % 3600
+        ) / 60
       );
 
-
     const seconds =
-      safeSeconds
-      % 60;
-
+      safeSeconds % 60;
 
     return (
-      String(
-        hours
-      )
-      .padStart(
-        2,
-        '0'
-      )
-      +
-      ':'
-      +
-      String(
-        minutes
-      )
-      .padStart(
-        2,
-        '0'
-      )
-      +
-      ':'
-      +
-      String(
-        seconds
-      )
-      .padStart(
-        2,
-        '0'
-      )
+      String(hours).padStart(2, '0')
+      + ':'
+      + String(minutes).padStart(2, '0')
+      + ':'
+      + String(seconds).padStart(2, '0')
     );
-
   }
 
-
-  /* =========================
-     TIME LOOP
-  ========================= */
-
-  private startTimeLoop():
-    void {
+  private startTimeLoop(): void {
 
     this.stopTimeLoop();
-
 
     this.timeInterval =
       setInterval(
         () => {
 
-
-          /*
-            CLOCK
-          */
-
           if (
-            this.displayType ===
-            'clock'
+            this.displayType === 'clock'
           ) {
 
             this.updateClock();
-
           }
 
-
-          /*
-            TIMER
-          */
-
           if (
-            this.displayType ===
-            'timer'
+            this.displayType === 'timer'
             &&
             this.timerRunning
           ) {
 
             this.timerSeconds++;
-
           }
 
-
-          /*
-            COUNTDOWN
-          */
-
           if (
-            this.displayType ===
-            'countdown'
+            this.displayType === 'countdown'
             &&
             this.countdownRunning
           ) {
 
             if (
-              this.countdownSeconds >
-              0
+              this.countdownSeconds > 0
             ) {
 
               this.countdownSeconds--;
-
             }
-
 
             if (
-              this.countdownSeconds <=
-              0
+              this.countdownSeconds <= 0
             ) {
 
-              this.countdownSeconds =
-                0;
+              this.countdownSeconds = 0;
 
-              this.countdownRunning =
-                false;
-
+              this.countdownRunning = false;
             }
-
           }
-
 
           this.updateDisplayChars();
 
           this.cdr.detectChanges();
 
-
         },
         1000
       );
-
   }
 
+  private stopTimeLoop(): void {
 
-  private stopTimeLoop():
-    void {
-
-    if (
-      this.timeInterval
-    ) {
+    if (this.timeInterval) {
 
       clearInterval(
         this.timeInterval
       );
 
-      this.timeInterval =
-        null;
-
+      this.timeInterval = null;
     }
-
   }
 
+  startTimer(): void {
 
-  /* =========================
-     TIMER
-  ========================= */
-
-  startTimer():
-    void {
-
-    this.timerRunning =
-      true;
-
+    this.timerRunning = true;
   }
 
+  pauseTimer(): void {
 
-  pauseTimer():
-    void {
-
-    this.timerRunning =
-      false;
-
+    this.timerRunning = false;
   }
 
+  resetTimer(): void {
 
-  resetTimer():
-    void {
+    this.timerRunning = false;
 
-    this.timerRunning =
-      false;
-
-    this.timerSeconds =
-      0;
+    this.timerSeconds = 0;
 
     this.updateDisplayChars();
 
     this.cdr.detectChanges();
-
   }
 
-
-  /* =========================
-     COUNTDOWN
-  ========================= */
-
-  startCountdown():
-    void {
+  startCountdown(): void {
 
     if (
-      this.countdownSeconds <=
-      0
+      this.countdownSeconds <= 0
     ) {
 
       this.countdownSeconds =
-        this.countdownInputMinutes
-        * 60;
-
+        this.countdownInputMinutes * 60;
     }
 
-
-    this.countdownRunning =
-      true;
-
+    this.countdownRunning = true;
   }
 
+  pauseCountdown(): void {
 
-  pauseCountdown():
-    void {
-
-    this.countdownRunning =
-      false;
-
+    this.countdownRunning = false;
   }
 
+  resetCountdown(): void {
 
-  resetCountdown():
-    void {
-
-    this.countdownRunning =
-      false;
+    this.countdownRunning = false;
 
     this.countdownSeconds =
-      this.countdownInputMinutes
-      * 60;
+      this.countdownInputMinutes * 60;
 
     this.updateDisplayChars();
 
     this.cdr.detectChanges();
-
   }
 
+  onCountdownInputChange(): void {
 
-  onCountdownInputChange():
-    void {
-
-    this.countdownRunning =
-      false;
+    this.countdownRunning = false;
 
     this.countdownSeconds =
-      this.countdownInputMinutes
-      * 60;
-
+      this.countdownInputMinutes * 60;
   }
 
-
-  /* =========================
-     PREPARE SCROLL
-  ========================= */
-
-  private prepareScroll():
-    void {
+  private prepareScroll(): void {
 
     if (
-      this.mode !==
-      'scroll'
+      this.mode !== 'scroll'
       ||
-      this.displayType !==
-      'message'
+      this.displayType !== 'message'
     ) {
 
       return;
-
     }
 
-
     const messageElement =
-  document.querySelector(
-    '.scroll-copy'
-  ) as HTMLElement | null;
+      document.querySelector(
+        '.scroll-copy'
+      ) as HTMLElement | null;
 
-    if (
-      !messageElement
-    ) {
+    if (!messageElement) {
 
       requestAnimationFrame(
         () => {
@@ -876,20 +485,14 @@ export class App
       );
 
       return;
-
     }
-
 
     const width =
       messageElement
-      .getBoundingClientRect()
-      .width;
+        .getBoundingClientRect()
+        .width;
 
-
-    if (
-      width <=
-      0
-    ) {
+    if (width <= 0) {
 
       requestAnimationFrame(
         () => {
@@ -900,52 +503,38 @@ export class App
       );
 
       return;
-
     }
 
-
-    this.scrollDistance =
-      width;
-
+    this.scrollDistance = width;
 
     const viewportWidth =
       window.innerWidth;
-
 
     const copyCount =
       Math.max(
         6,
         Math.ceil(
-          viewportWidth
-          / width
-        )
-        + 5
+          viewportWidth / width
+        ) + 5
       );
-
 
     this.scrollCopies =
       Array.from(
         {
-          length:
-            copyCount
+          length: copyCount
         },
-        () =>
-          [
-            ...this.displayChars
-          ]
+        () => [
+          ...this.displayChars
+        ]
       );
-
 
     this.displayDuration =
       Math.max(
-        width
-        / this.scrollSpeed,
+        width / this.scrollSpeed,
         4
       );
 
-
     this.cdr.detectChanges();
-
 
     requestAnimationFrame(
       () => {
@@ -953,8 +542,7 @@ export class App
         requestAnimationFrame(
           () => {
 
-            this.scrollReady =
-              true;
+            this.scrollReady = true;
 
             this.cdr.detectChanges();
 
@@ -963,56 +551,32 @@ export class App
 
       }
     );
-
   }
 
-
-  /* =========================
-     EDIT
-  ========================= */
-
-  stopDisplay():
-    void {
+  stopDisplay(): void {
 
     this.stopTimeLoop();
 
-
-    if (
-      this.isDisplaying
-    ) {
+    if (this.isDisplaying) {
 
       history.back();
-
     }
-
   }
 
-
-  /* =========================
-     SIZE CHANGE
-  ========================= */
-
-  onSizeChange():
-    void {
+  onSizeChange(): void {
 
     if (
-      this.mode !==
-      'scroll'
+      this.mode !== 'scroll'
       ||
-      this.displayType !==
-      'message'
+      this.displayType !== 'message'
     ) {
 
       return;
-
     }
 
-
-    this.scrollReady =
-      false;
+    this.scrollReady = false;
 
     this.cdr.detectChanges();
-
 
     requestAnimationFrame(
       () => {
@@ -1027,38 +591,20 @@ export class App
 
       }
     );
-
   }
 
+  private async loadFont(): Promise<void> {
 
-  /* =========================
-     FONT LOADING
-  ========================= */
-
-  private async loadFont():
-    Promise<void> {
-
-    if (
-      this.fontLoaded
-    ) {
-
+    if (this.fontLoaded) {
       return;
-
     }
 
-
-    if (
-      this.fontLoading
-    ) {
-
+    if (this.fontLoading) {
       return this.fontLoading;
-
     }
-
 
     this.fontLoading =
       this.fetchFont();
-
 
     try {
 
@@ -1066,73 +612,44 @@ export class App
 
     } finally {
 
-      this.fontLoading =
-        null;
-
+      this.fontLoading = null;
     }
-
   }
 
-
-  private async fetchFont():
-    Promise<void> {
+  private async fetchFont(): Promise<void> {
 
     const response =
       await fetch(
         'fonts/unifont_jp.hex'
       );
 
-
-    if (
-      !response.ok
-    ) {
+    if (!response.ok) {
 
       throw new Error(
         `Font file could not be loaded: ${response.status}`
       );
-
     }
-
 
     const text =
       await response.text();
 
-
     const lines =
-      text.split(
-        /\r?\n/
-      );
-
+      text.split(/\r?\n/);
 
     for (
-      const line
-      of lines
+      const line of lines
     ) {
 
-      if (
-        !line.trim()
-      ) {
-
+      if (!line.trim()) {
         continue;
-
       }
-
 
       const separator =
-        line.indexOf(
-          ':'
-        );
+        line.indexOf(':');
 
-
-      if (
-        separator ===
-        -1
-      ) {
-
+      if (separator === -1) {
         continue;
-
       }
-
 
       const codePoint =
         parseInt(
@@ -1143,175 +660,104 @@ export class App
           16
         );
 
-
       const bitmap =
-        line.slice(
-          separator + 1
-        )
-        .trim();
-
+        line
+          .slice(
+            separator + 1
+          )
+          .trim();
 
       if (
-        Number.isNaN(
-          codePoint
-        )
+        Number.isNaN(codePoint)
         ||
-        bitmap.length ===
-        0
+        bitmap.length === 0
       ) {
 
         continue;
-
       }
-
 
       this.fontData.set(
         codePoint,
         bitmap
       );
-
     }
 
-
-    this.fontLoaded =
-      true;
-
+    this.fontLoaded = true;
   }
 
-
-  /* =========================
-     CHARACTER PATTERN
-  ========================= */
-
   getPattern(
-    char:
-      string
-  ):
-    string[] {
+    char: string
+  ): string[] {
 
     const codePoint =
-      char.codePointAt(
-        0
-      );
-
+      char.codePointAt(0);
 
     if (
-      codePoint ===
-      undefined
+      codePoint === undefined
     ) {
 
       return this.blankPattern();
-
     }
-
 
     const cached =
       this.patternCache.get(
         codePoint
       );
 
-
-    if (
-      cached
-    ) {
-
+    if (cached) {
       return cached;
-
     }
-
 
     let bitmap =
       this.fontData.get(
         codePoint
       );
 
-
-    /*
-      未対応文字は
-      ? を表示
-    */
-
-    if (
-      !bitmap
-    ) {
+    if (!bitmap) {
 
       bitmap =
         this.fontData.get(
           0x003f
         );
 
-
-      if (
-        !bitmap
-      ) {
+      if (!bitmap) {
 
         return this.blankPattern();
-
       }
-
     }
-
 
     const pattern =
       this.hexToPattern(
         bitmap
       );
 
-
     this.patternCache.set(
       codePoint,
       pattern
     );
 
-
     return pattern;
-
   }
-
 
   getRows(
-    char:
-      string
-  ):
-    string[][] {
+    char: string
+  ): string[][] {
 
     return this
-      .getPattern(
-        char
-      )
+      .getPattern(char)
       .map(
         row =>
-          row.split(
-            ''
-          )
+          row.split('')
       );
-
   }
 
-
-  /* =========================
-     HEX → DOT MATRIX
-  ========================= */
-
   private hexToPattern(
-    hex:
-      string
-  ):
-    string[] {
+    hex: string
+  ): string[] {
 
-    const rows:
-      string[] =
-      [];
+    const rows: string[] = [];
 
-
-    /*
-      16 × 16
-    */
-
-    if (
-      hex.length ===
-      64
-    ) {
+    if (hex.length === 64) {
 
       for (
         let y = 0;
@@ -1325,41 +771,24 @@ export class App
             y * 4 + 4
           );
 
-
         const row =
           parseInt(
             rowHex,
             16
           )
-          .toString(
-            2
-          )
-          .padStart(
-            16,
-            '0'
-          );
+            .toString(2)
+            .padStart(
+              16,
+              '0'
+            );
 
-
-        rows.push(
-          row
-        );
-
+        rows.push(row);
       }
 
-
       return rows;
-
     }
 
-
-    /*
-      8 × 16
-    */
-
-    if (
-      hex.length ===
-      32
-    ) {
+    if (hex.length === 32) {
 
       for (
         let y = 0;
@@ -1373,62 +802,37 @@ export class App
             y * 2 + 2
           );
 
-
         const row =
           parseInt(
             rowHex,
             16
           )
-          .toString(
-            2
-          )
-          .padStart(
-            8,
-            '0'
-          );
-
+            .toString(2)
+            .padStart(
+              8,
+              '0'
+            );
 
         rows.push(
-
           '0000'
           +
           row
           +
           '0000'
-
         );
-
       }
 
-
       return rows;
-
     }
 
-
     return this.blankPattern();
-
   }
 
+  private blankPattern(): string[] {
 
-  /* =========================
-     EMPTY CHARACTER
-  ========================= */
-
-  private blankPattern():
-    string[] {
-
-    return Array(
-      16
-    )
-    .fill(
-
-      '0'.repeat(
-        16
-      )
-
-    );
-
+    return Array(16)
+      .fill(
+        '0'.repeat(16)
+      );
   }
-
 }
